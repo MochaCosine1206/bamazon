@@ -1,4 +1,10 @@
 const mysql = require('mysql');
+const inquirer = require('inquirer');
+
+
+let id;
+let units;
+let totalPrice;
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -13,14 +19,81 @@ var connection = mysql.createConnection({
         throw err;
     }
     console.log("connected as id " + connection.threadId);
-    afterConnection();
+    getProducts();
   });
 
-  function afterConnection() {
+  function getProducts() {
     var query = connection.query("SELECT * FROM products", function(err, res) {
       if (err) throw err;
-      console.log(res);
-      connection.end();
+      // console.log(res);
+      console.log("\nWelcome to Bamazon!" + "\n+----------------------------------------------------+\n")
+      for (let i = 0; i < res.length; i++){
+        console.log("ID: " + res[i].item_id, " | Product Name: " + res[i].product_name + " | Department Name: " + res[i].department_name + " | Stock Qty: " + res[i].stock_quantity + " | Price: " + res[i].price + "\n")
+      }
+      userPrompt();
     });
-    console.log(query.sql);
   }
+
+
+function userPrompt() {
+  inquirer
+  .prompt([
+    {
+      name: "id",
+      message: "Please Select Product ID: "
+    },
+    {
+      name: "units",
+      message: "How many would you like?"
+    }
+  ]).then((answer) => {
+    id = parseInt(answer.id);
+    units = parseInt(answer.units);
+    // console.log("ID: " + id + "\nUnits: " + units);
+    qtyCheck(id, units);
+  })
+}
+
+//If store does not have enough qty for the product
+//console.log("Insufficient Qty! Please select lower amount.)
+//reprompt user
+
+function qtyCheck(id, units) {
+  
+  connection.query("SELECT * FROM products WHERE item_id = " + id, function(err, res) {
+    let queryQTY;
+    if (err) throw err;
+    // console.log(res[0].stock_quantity);
+    queryQTY = res[0].stock_quantity;
+    // console.log("Inside sql query: " + queryQTY);
+    if(units > queryQTY) {
+      console.log("Insufficient Qty! Please select lower amount.")
+    } else {
+      updateBamazon(id, units, queryQTY);
+    }    
+  });
+}
+
+function updateBamazon(id, units, queryQTY) {
+    let qtyUpdate = "UPDATE products SET stock_quantity = " + units + " WHERE item_id = " + id;
+    let qtyPrice = "SELECT * FROM products WHERE item_id = " + id;
+    connection.query(qtyUpdate, (err, res) => {
+      if (err) throw err;
+      // console.log(res.affectedRows + " record(s) updated");
+      //need to return the total price of user selection.
+    })
+    connection.query(qtyPrice, (err, res) => {
+      let queryPrice;
+      if (err) throw err;
+      // console.log(res);
+      queryPrice = res[0].price;
+      totalPrice = Math.ceil(queryPrice * units);
+      console.log("Thank you for purchasing: " + res[0].product_name + "\nYour total cost is: $" + totalPrice);
+    })
+  connection.end();
+}
+
+//If store does have sufficient qty
+//update sql quantity
+//console.log("Product Name, QTY, total Cost");
+ 
