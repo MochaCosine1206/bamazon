@@ -5,6 +5,7 @@ const inquirer = require('inquirer');
 let id;
 let units;
 let totalPrice;
+let queryPrice;
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -64,7 +65,7 @@ function qtyCheck(id, units) {
     let queryQTY;
     if (err) throw err;
     // console.log(res[0].stock_quantity);
-    queryQTY = res[0].stock_quantity;
+    queryQTY = parseInt(res[0].stock_quantity);
     // console.log("Inside sql query: " + queryQTY);
     if(units > queryQTY) {
       console.log("Insufficient Qty! Please select lower amount.")
@@ -75,7 +76,7 @@ function qtyCheck(id, units) {
 }
 
 function updateBamazon(id, units, queryQTY) {
-    let qtyUpdate = "UPDATE products SET stock_quantity = " + units + " WHERE item_id = " + id;
+    let qtyUpdate = "UPDATE products SET stock_quantity = " + (queryQTY - units) + " WHERE item_id = " + id;
     let qtyPrice = "SELECT * FROM products WHERE item_id = " + id;
     connection.query(qtyUpdate, (err, res) => {
       if (err) throw err;
@@ -83,17 +84,24 @@ function updateBamazon(id, units, queryQTY) {
       //need to return the total price of user selection.
     })
     connection.query(qtyPrice, (err, res) => {
-      let queryPrice;
       if (err) throw err;
       // console.log(res);
-      queryPrice = res[0].price;
-      totalPrice = Math.ceil(queryPrice * units);
+      queryPrice = parseFloat(res[0].price);
+      totalPrice = queryPrice * units;
+      
       console.log("Thank you for purchasing: " + res[0].product_name + "\nYour total cost is: $" + totalPrice);
+      updateSales(totalPrice, id);
     })
+    
+}
+
+function updateSales(totalPrice, id) {
+  console.log(totalPrice);
+  let salesUpdate = "UPDATE products SET product_sales = " + totalPrice + " WHERE item_id = " + id;
+  connection.query(salesUpdate, (err, res) => {
+    if(err)throw err;
+ })
   connection.end();
 }
 
-//If store does have sufficient qty
-//update sql quantity
-//console.log("Product Name, QTY, total Cost");
- 
+
