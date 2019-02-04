@@ -41,7 +41,7 @@ function userPrompt() {
   .prompt([
     {
       name: "id",
-      message: "Please Select Product ID: "
+      message: "Please Select Product ID you wish to purchase: "
     },
     {
       name: "units",
@@ -89,14 +89,14 @@ function updateBamazon(id, units, queryQTY) {
       queryPrice = parseFloat(res[0].price);
       totalPrice = queryPrice * units;
       
-      console.log("Thank you for purchasing: " + res[0].product_name + "\nYour total cost is: $" + totalPrice);
+      console.log("Thank you for purchasing: " + res[0].product_name + "\nYour total cost is: $" + totalPrice.toFixed(2));
       updateSales(totalPrice, id);
     })
     
 }
 
 function updateSales(totalPrice, id) {
-  console.log(totalPrice);
+  // console.log(totalPrice);
   let salesUpdate = "UPDATE products SET product_sales = " + totalPrice + " WHERE item_id = " + id;
   connection.query(salesUpdate, (err, res) => {
     if(err)throw err;
