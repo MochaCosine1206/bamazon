@@ -13,14 +13,14 @@ var connection = mysql.createConnection({
     if (err) {
         throw err;
     }
-    console.log("connected as id " + connection.threadId);
+    // console.log("connected as id " + connection.threadId);
     supMenu();
   });
 
   function getDepartments() {
-    connection.query("SELECT departments.department_ID, departments.department_name, departments.over_head_costs,  products.product_name, SUM (DISTINCT products.product_sales) as 'product_sales', (SUM (DISTINCT products.product_sales) - (departments.over_head_costs)) as 'total_profit' FROM departments INNER JOIN products ON departments.department_name = products.department_name GROUP BY departments.department_name", (err, res) => {
+    connection.query("SELECT departments.department_ID, departments.department_name, departments.over_head_costs,  products.product_name, SUM (DISTINCT products.product_sales) as 'product_sales', (SUM (DISTINCT products.product_sales) - (departments.over_head_costs)) as 'total_profit' FROM departments INNER JOIN products ON departments.department_name = products.department_name GROUP BY departments.department_name ORDER BY departments.department_ID", (err, res) => {
         if (err) throw err;
-        console.log(res);
+        // console.log(res);
         for (let i = 0; i < res.length; i ++){
                 console.log("ID: " + res[i].department_ID, " | Department Name: " + res[i].department_name + " | Over Head Costs: " + res[i].over_head_costs + " | Product Sales: " + res[i].product_sales + " | Total Profit: " + res[i].total_profit + "\n");
         };
@@ -51,7 +51,7 @@ var connection = mysql.createConnection({
     let newOH = "VALUES ('" + deptName + "', "  + overHead + ")";
     connection.query(newDept +  newOH + ";", (err, res) => {
         if (err) throw err;
-        console.log(res);
+        // console.log(res);
         console.log(res.affectedRows + " record(s) updated");
         supMenu();
     });

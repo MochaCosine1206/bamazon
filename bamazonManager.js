@@ -16,6 +16,11 @@ let newDept;
 let newPrice;
 let newUnits;
 
+connection.connect((err) => {
+    // console.log("connected as id " + connection.threadId);
+    openQuery();
+});
+
 
 function getProducts() {
     var query = connection.query("SELECT * FROM products", function (err, res) {
@@ -31,7 +36,6 @@ function getProducts() {
 
 function getLowInventory() {
     connection.query("SELECT * FROM products WHERE stock_quantity < 6", function (err, res) {
-        if (err) throw err;
         //   console.log(res);
         console.log("\n-------------------------Below Inventory is dangerously Low----------------------------")
         for (let i = 0; i < res.length; i++) {
@@ -46,11 +50,9 @@ function addInvQuery(id, units) {
     let qtyUpdate = "UPDATE products SET stock_quantity = stock_quantity + " + units + " WHERE item_id = " + id;
     let invProdUpdate = "SELECT * FROM products WHERE item_id = " + id;
     connection.query(qtyUpdate, (err, res) => {
-        if (err) throw err;
-        console.log(res);
+        // console.log(res);
     })
     connection.query(invProdUpdate, (err, res) => {
-        if (err) throw err;
         // console.log(res);
         console.log("You have updated: " + res[0].product_name + "\nYour total qty is now: " + res[0].stock_quantity);
         openQuery();
@@ -61,8 +63,7 @@ function addProduct(prod, dept, price, units) {
     let insert = "INSERT INTO products (product_name, department_name, price, stock_quantity)";
     let prodToAdd = "VALUES ('" + prod + "', '"  + dept + "', " + price + ", " + units + ")";
     connection.query(insert +  prodToAdd + ";", (err, res) => {
-        if (err) throw err;
-        console.log(res);
+        // console.log(res);
         console.log(res.affectedRows + " record(s) updated");
         getProducts();
         openQuery();
@@ -90,7 +91,7 @@ function addProdInfo() {
                 message: "How many units will go into inventory?"
             }
         ]).then((answer) => {
-            console.log("Inside addProdInfoanswer");
+            // console.log("Inside addProdInfoanswer");
             console.log(answer);
             newProduct = answer.newProduct;
             newDept = answer.newDept;
@@ -125,9 +126,7 @@ function addInv() {
     
 }
 
-function exit() {
-    connection.end();    
-}
+
 
 function openQuery() {
     inquirer
@@ -135,11 +134,11 @@ function openQuery() {
             {
                 type: "list",
                 name: "topMenu",
-                message: "Welcome back Bamzon Manager!  Please select from the options below:",
+                message: "\nWelcome back Bamzon Manager!  Please select from the options below:",
                 choices: ["View Products for sale", "View low inventory", "Add to inventory", "Add New Product", "Exit"]
             }
         ]).then((answer) => {
-            console.log(answer.topMenu);
+            // console.log(answer.topMenu);
             switch (answer.topMenu) {
                 case "View Products for sale":
                     getProducts();
@@ -160,10 +159,6 @@ function openQuery() {
         
 }
 
-connection.connect((err) => {
-    if (err) {
-        throw err;
-    }
-    console.log("connected as id " + connection.threadId);
-    openQuery();
-});
+function exit() {
+    connection.destroy();    
+}
